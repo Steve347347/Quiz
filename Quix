@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pinergy Quiz</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('Screenshot 2025-07-03 124357.png'); /* Set background to the provided image */
+            background-color: #f8f9fa; /* Fallback color */
+            background-size: cover; /* Cover the entire background */
+            background-position: center; /* Center the background image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-attachment: fixed; /* Keep background fixed when scrolling */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white background for readability */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow for contrast */
+            padding: 2.5rem; /* Increased padding */
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between elements */
+            position: relative; /* Added for z-index */
+            z-index: 10; /* Ensure it's above other elements if any */
+        }
+        .round-title {
+            font-size: 1.75rem; /* Larger font for round title */
+            font-weight: 700;
+            color: #0066CC; /* Pinergy blue for the round title */
+            margin-bottom: 0.5rem;
+        }
+        .question-number {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #6c757d; /* A slightly lighter gray for the number */
+            margin-bottom: 0.5rem;
+        }
+        .question-text {
+            font-size: 1.5rem; /* Larger font for questions */
+            font-weight: 600;
+            color: #343a40; /* Darker text for readability, similar to Pinergy text */
+            margin-bottom: 1.5rem;
+        }
+        .options-container {
+            display: grid;
+            gap: 1rem; /* Space between options */
+            grid-template-columns: 1fr; /* Single column for mobile */
+        }
+        @media (min-width: 640px) { /* Small screens and up */
+            .options-container {
+                grid-template-columns: repeat(2, 1fr); /* Two columns for larger screens */
+            }
+        }
+        .option-button {
+            background-color: #e9ecef; /* Light gray for options, subtle */
+            color: #495057; /* Darker gray for option text */
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded corners for buttons */
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .option-button:hover {
+            background-color: #dee2e6;
+            border-color: #adb5bd;
+        }
+        .option-button.selected {
+            background-color: #cfe2ff; /* Light blue when selected, subtle */
+            border-color: #0066CC; /* Pinergy blue border when selected */
+            color: #004085; /* Darker blue text */
+        }
+        .option-button.correct {
+            background-color: #d4edda; /* Light green for correct */
+            border-color: #28a745; /* Green border */
+            color: #155724; /* Dark green text */
+        }
+        .option-button.incorrect {
+            background-color: #f8d7da; /* Light red for incorrect */
+            border-color: #dc3545; /* Red border */
+            color: #721c24; /* Dark red text */
+        }
+        .navigation-button {
+            background-color: #0066CC; /* Pinergy Blue for navigation */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+        }
+        .navigation-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        #next-button.final-question {
+            background-color: #00B09B; /* Pinergy Green for final question button */
+        }
+        #next-button.final-question:hover {
+            background-color: #008C78; /* Darker green on hover */
+        }
+        .score-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #343a40;
+            margin-top: 2rem;
+        }
+        .message-box {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: #2d3748;
+            display: none; /* Hidden by default */
+        }
+        /* Specific message box styles for the new theme */
+        .message-box.bg-green-100 { background-color: #d4edda; color: #155724; border-color: #28a745; }
+        .message-box.bg-red-100 { background-color: #f8d7da; color: #721c24; border-color: #dc3545; }
+        .message-box.bg-blue-100 { background-color: #cfe2ff; color: #004085; border-color: #0066CC; }
+
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">The Pinergy Quiz</h1>
+
+        <div id="quiz-screen">
+            <p id="round-title" class="round-title"></p>
+            <p id="question-number" class="question-number"></p>
+            <p id="question-text" class="question-text"></p>
+            <div id="options-container" class="options-container">
+                <!-- Options will be loaded here by JavaScript -->
+            </div>
+            <button id="next-button" class="navigation-button">Next Question</button>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <p class="score-display">You scored <span id="final-score">0</span> out of <span id="total-questions">0</span>!</p>
+            <button id="restart-button" class="navigation-button">Play Again</button>
+        </div>
+
+        <div id="message-box" class="message-box"></div>
+    </div>
+
+    <script>
+        // Full pool of general knowledge questions, now categorized into rounds
+        const allQuestions = [
+            // Round 1: World Affairs & Geography (5 questions)
+            {
+                question: "Which European country recently experienced widespread wildfires leading to mass evacuations?",
+                options: ["Italy", "Greece", "Spain", "Crete"],
+                answer: "Crete",
+                round: "World Affairs & Geography"
+            },
+            {
+                question: "What is the capital city of Canada?",
+                options: ["Toronto", "Vancouver", "Ottawa", "Montreal"],
+                answer: "Ottawa",
+                round: "World Affairs & Geography"
+            },
+            {
+                question: "What is the name of the river that forms part of the border between Uruguay and Argentina, also known as Rio de la Plata?",
+                options: ["Amazon River", "Paraná River", "Uruguay River", "River Plate"],
+                answer: "River Plate",
+                round: "World Affairs & Geography"
+            },
+            {
+                question: "How many founding members formed the North Atlantic Treaty Organization (NATO) in 1949?",
+                options: ["5", "12", "20", "3"],
+                answer: "12",
+                round: "World Affairs & Geography"
+            },
+            {
+                question: "Which country is the largest island in the Mediterranean Sea?",
+                options: ["Crete", "Cyprus", "Sicily", "Sardinia"],
+                answer: "Sicily",
+                round: "World Affairs & Geography"
+            },
+            // Round 2: Science & Nature (5 questions)
+            {
+                question: "What is the chemical symbol for silver?",
+                options: ["Au", "Fe", "Ag", "Cu"],
+                answer: "Ag",
+                round: "Science & Nature"
+            },
+            {
+                question: "Which gas is most abundant in the sun?",
+                options: ["Oxygen", "Helium", "Hydrogen", "Nitrogen"],
+                answer: "Hydrogen",
+                round: "Science & Nature"
+            },
+            {
+                question: "Traditionally, mozzarella cheese is made from the milk of which animal?",
+                options: ["Cow", "Goat", "Buffalo", "Sheep"],
+                answer: "Buffalo",
+                round: "Science & Nature"
+            },
+            {
+                question: "What type of erosion occurs when rocks grind along the bed and banks of a river to wear it down?",
+                options: ["Attrition", "Abrasion", "Hydraulic Action", "Solution"],
+                answer: "Abrasion",
+                round: "Science & Nature"
+            },
+            {
+                question: "What is the main component of natural gas?",
+                options: ["Propane", "Butane", "Methane", "Ethane"],
+                answer: "Methane",
+                round: "Science & Nature"
+            },
+            // Round 3: Arts & Literature (5 questions)
+            {
+                question: "Which famous author wrote 'Treasure Island' and 'Strange Case of Dr Jekyll and Mr Hyde'?",
+                options: ["Charles Dickens", "Robert Louis Stevenson", "Mark Twain", "H.G. Wells"],
+                answer: "Robert Louis Stevenson",
+                round: "Arts & Literature"
+            },
+            {
+                question: "Which famous playwright wrote 'Hamlet' and 'Macbeth'?",
+                options: ["George Bernard Shaw", "Arthur Miller", "William Shakespeare", "Oscar Wilde"],
+                answer: "William Shakespeare",
+                round: "Arts & Literature"
+            },
+            {
+                question: "Which famous artist cut off part of his own ear?",
+                options: ["Pablo Picasso", "Vincent van Gogh", "Claude Monet", "Salvador Dalí"],
+                answer: "Vincent van Gogh",
+                round: "Arts & Literature"
+            },
+            {
+                question: "What is the name of the theory that states the universe originated from a single point?",
+                options: ["Steady State Theory", "Big Bang Theory", "Pulsating Universe Theory", "Inflationary Universe Theory"],
+                answer: "Big Bang Theory",
+                round: "Science & Nature" // Re-categorized to Science & Nature
+            },
+            {
+                question: "What was the surname of Leonardo DiCaprio's character, Jack, in 'Titanic'?",
+                options: ["Smith", "Dawson", "Calvert", "Rose"],
+                answer: "Dawson",
+                round: "Arts & Literature" // Categorized as Arts & Literature (Film)
+            },
+            // Round 4: Pop Culture & Entertainment (5 questions)
+            {
+                question: "Sean 'Diddy' Combs was recently convicted of what charges, though acquitted of more serious ones?",
+                options: ["Drug Trafficking", "Money Laundering", "Prostitution Counts", "Assault"],
+                answer: "Prostitution Counts",
+                round: "Pop Culture & Entertainment"
+            },
+            {
+                question: "Which social media company's AI training practices in Ireland have recently come under scrutiny for psychologically distressing content?",
+                options: ["TikTok", "X (formerly Twitter)", "Meta", "Snapchat"],
+                answer: "Meta",
+                round: "Pop Culture & Entertainment"
+            },
+            {
+                question: "Which famous rock star's real name is William Bailey?",
+                options: ["Bono", "Axl Rose", "Freddie Mercury", "Mick Jagger"],
+                answer: "Axl Rose",
+                round: "Pop Culture & Entertainment"
+            },
+            {
+                question: "What colour is Lightning McQueen in Disney's 'Cars'?",
+                options: ["Blue", "Yellow", "Red", "Green"],
+                answer: "Red",
+                round: "Pop Culture & Entertainment"
+            },
+            {
+                question: "What type of animal is Timon, in 'The Lion King'?",
+                options: ["Warthog", "Meerkat", "Hyena", "Baboon"],
+                answer: "Meerkat",
+                round: "Pop Culture & Entertainment"
+            },
+            // Round 5: History & Sports (5 questions)
+            {
+                question: "What is the name of the Liverpool forward who was recently reported to have died in a car crash in Spain?",
+                options: ["Mohamed Salah", "Virgil van Dijk", "Diogo Jota", "Alisson Becker"],
+                answer: "Diogo Jota",
+                round: "History & Sports"
+            },
+            {
+                question: "Which major sporting event recently saw Emma Raducanu defeat a 2023 champion?",
+                options: ["French Open", "Wimbledon", "US Open", "Australian Open"],
+                answer: "Wimbledon",
+                round: "History & Sports"
+            },
+            {
+                question: "Which Irish band's Glastonbury performance is reportedly under criminal investigation?",
+                options: ["U2", "The Cranberries", "Kneecap", "Thin Lizzy"],
+                answer: "Kneecap",
+                round: "Pop Culture & Entertainment"
+            },
+            {
+                question: "Who ran against Bill Clinton in the 1996 US Presidential Election?",
+                options: ["George H.W. Bush", "Al Gore", "Bob Dole", "Ross Perot"],
+                answer: "Bob Dole",
+                round: "History & Sports"
+            },
+            {
+                question: "During WWII, Utah, Omaha, Gold, Juno and Sword were nicknames for what?",
+                options: ["Airfields", "Tanks", "Beaches", "Submarines"],
+                answer: "Beaches",
+                round: "History & Sports"
+            },
+            {
+                question: "Which is the only nation to appear at every single FIFA World Cup?",
+                options: ["Germany", "Italy", "Brazil", "Argentina"],
+                answer: "Brazil",
+                round: "History & Sports"
+            },
+            {
+                question: "Which country has produced the most F1 World Championship winning drivers?",
+                options: ["Germany", "Brazil", "UK", "Italy"],
+                answer: "UK",
+                round: "History & Sports"
+            },
+            {
+                question: "What is the minimum aging period for Scotch, according to Scottish law?",
+                options: ["1 year", "3 years", "5 years", "10 years"],
+                answer: "3 years",
+                round: "Pop Culture & Entertainment"
+            }
+        ];
+
+        let questions = []; // This will hold the 25 questions for the current day
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+
+        // Get DOM elements
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const roundTitleText = document.getElementById('round-title');
+        const questionNumberText = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextButton = document.getElementById('next-button');
+        const finalScoreSpan = document.getElementById('final-score');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const restartButton = document.getElementById('restart-button');
+        const messageBox = document.getElementById('message-box');
+
+        /**
+         * Shuffles an array using the Fisher-Yates (Knuth) algorithm.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Selects 25 random questions from the allQuestions pool, ensuring 5 questions per round.
+         * Stores them in localStorage along with the current date.
+         */
+        function selectDailyQuestions() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('pinergyQuizDate');
+            const storedQuestions = localStorage.getItem('pinergyQuizQuestions');
+
+            if (storedDate === today && storedQuestions) {
+                // If questions for today exist, load them
+                questions = JSON.parse(storedQuestions);
+            } else {
+                // Otherwise, select new questions and store them
+                const categories = [
+                    "World Affairs & Geography",
+                    "Science & Nature",
+                    "Arts & Literature",
+                    "Pop Culture & Entertainment",
+                    "History & Sports"
+                ];
+                let newQuestions = [];
+                let questionsByCategory = {};
+
+                // Group all questions by category
+                allQuestions.forEach(q => {
+                    if (!questionsByCategory[q.round]) {
+                        questionsByCategory[q.round] = [];
+                    }
+                    questionsByCategory[q.round].push(q);
+                });
+
+                // Select 5 random questions from each category
+                categories.forEach(category => {
+                    if (questionsByCategory[category]) {
+                        const shuffledCategoryQuestions = shuffleArray([...questionsByCategory[category]]);
+                        newQuestions = newQuestions.concat(shuffledCategoryQuestions.slice(0, 5));
+                    }
+                });
+
+                // Ensure we have exactly 25 questions, if not, fill from remaining shuffled pool
+                // This fallback ensures the quiz always has 25 questions even if some categories are short.
+                if (newQuestions.length < 25) {
+                    const remainingQuestions = shuffleArray(allQuestions.filter(q => !newQuestions.includes(q)));
+                    newQuestions = newQuestions.concat(remainingQuestions.slice(0, 25 - newQuestions.length));
+                } else if (newQuestions.length > 25) {
+                    newQuestions = shuffleArray(newQuestions).slice(0, 25);
+                }
+
+                questions = newQuestions;
+                localStorage.setItem('pinergyQuizDate', today);
+                localStorage.setItem('pinergyQuizQuestions', JSON.stringify(questions));
+            }
+        }
+
+        /**
+         * Displays a message in a dedicated message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', or 'info' for styling.
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            messageBox.className = 'message-box'; // Reset classes
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-400');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-400');
+            } else {
+                messageBox.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-400');
+            }
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        /**
+         * Loads and displays the current question.
+         */
+        function loadQuestion() {
+            console.log("Loading question:", currentQuestionIndex + 1); // Debugging line
+            selectedOption = null; // Reset selected option for new question
+            optionsContainer.innerHTML = ''; // Clear previous options
+            messageBox.style.display = 'none'; // Hide any previous messages
+
+            if (currentQuestionIndex < questions.length) {
+                const currentQuestion = questions[currentQuestionIndex];
+                // Update round title and question number
+                roundTitleText.textContent = `Round: ${currentQuestion.round}`;
+                questionNumberText.textContent = `Question ${currentQuestionIndex + 1}`;
+                questionText.textContent = currentQuestion.question;
+
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('option-button');
+                    button.addEventListener('click', () => {
+                        console.log('Option clicked:', option); // Debugging line: logs when an option is clicked
+                        selectOption(button, option);
+                    });
+                    optionsContainer.appendChild(button);
+                });
+
+                // Change button text and color for the last question
+                if (currentQuestionIndex === questions.length - 1) {
+                    nextButton.textContent = "Finish Quiz";
+                    nextButton.classList.add('final-question'); // Add a class for specific styling
+                } else {
+                    nextButton.textContent = "Next Question";
+                    nextButton.classList.remove('final-question');
+                }
+                nextButton.disabled = false; // Enable next button
+            } else {
+                showResult();
+            }
+        }
+
+        /**
+         * Handles the selection of an answer option.
+         * @param {HTMLButtonElement} button - The button element that was clicked.
+         * @param {string} optionText - The text content of the selected option.
+         */
+        function selectOption(button, optionText) {
+            // Remove 'selected' class from previously selected option
+            if (selectedOption) {
+                selectedOption.classList.remove('selected');
+            }
+            // Add 'selected' class to the newly selected option
+            button.classList.add('selected');
+            selectedOption = button; // Store the selected button element
+        }
+
+        /**
+         * Checks the selected answer and updates the score.
+         * Highlights correct/incorrect options.
+         */
+        function checkAnswer() {
+            if (!selectedOption) {
+                showMessage("Please select an answer before proceeding!", "error");
+                console.log("checkAnswer: No option selected, returning false."); // Debugging line
+                return false; // Indicate that no answer was selected
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const chosenAnswer = selectedOption.textContent;
+
+            // Disable all option buttons after an answer is chosen
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = true;
+                // Highlight the correct answer
+                if (button.textContent === currentQuestion.answer) {
+                    button.classList.add('correct');
+                }
+            });
+
+            if (chosenAnswer === currentQuestion.answer) {
+                score++;
+                selectedOption.classList.add('correct'); // Highlight selected if correct
+                showMessage("Correct!", "success");
+            } else {
+                selectedOption.classList.add('incorrect'); // Highlight selected if incorrect
+                showMessage("Incorrect! The correct answer was: " + currentQuestion.answer, "error");
+            }
+            console.log("checkAnswer: Option selected, returning true."); // Debugging line
+            return true; // Indicate that an answer was processed
+        }
+
+        /**
+         * Moves to the next question or shows results.
+         */
+        function nextQuestion() {
+            console.log("Next button clicked."); // Debugging line
+            // Only proceed if an answer was selected and processed
+            const answerChecked = checkAnswer();
+            console.log("checkAnswer returned:", answerChecked); // Debugging line
+
+            if (answerChecked) {
+                currentQuestionIndex++;
+                console.log("currentQuestionIndex incremented to:", currentQuestionIndex); // Debugging line
+                setTimeout(() => { // Delay loading next question to allow user to see feedback
+                    loadQuestion();
+                }, 1500); // 1.5 second delay
+            }
+        }
+
+        /**
+         * Displays the final score screen.
+         */
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreSpan.textContent = score;
+            totalQuestionsSpan.textContent = questions.length;
+            messageBox.style.display = 'none'; // Ensure message box is hidden on result screen
+        }
+
+        /**
+         * Resets the quiz to its initial state and starts over.
+         */
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            // When restarting, we should re-select questions for a new session
+            selectDailyQuestions();
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Initial setup: Select questions for the day and then load the first one
+        selectDailyQuestions();
+        loadQuestion();
+
+    </script>
+</body>
+</html>
